@@ -22,14 +22,19 @@ Used as the builder base by:
 
 ```bash
 make build
-IMAGE_TAG=v1.0 make push
+IMAGE_TAG=3.21.0 make push
 ```
+
+## Versioning
+
+Image tags follow the Alpine version: `MAJOR.MINOR.BUILD`.
+`BUILD` starts at 0 and increments with each change while on the same Alpine minor.
 
 ## Other targets
 
 ```bash
-make shell          # Open a shell inside the image
-make tag TAG=v1.0   # Create and push a git tag
+make shell              # Open a shell inside the image
+make tag TAG=3.21.0     # Create and push a git tag
 ```
 
 ## CI / Release
