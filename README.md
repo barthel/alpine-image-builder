@@ -11,12 +11,12 @@ Used as the builder base by:
 
 | Tool | Purpose |
 |---|---|
-| `binfmt-support` + `qemu-user-static` | ARM cross-execution in chroot |
+| `qemu-arm`, `qemu-aarch64` | ARM cross-execution in chroot (binfmt F-flag, no static copy) |
 | `parted`, `dosfstools`, `e2fsprogs` | Disk image partitioning and formatting |
-| `util-linux`, `kpartx` | Loop device and partition management |
+| `util-linux`, `multipath-tools` (`kpartx`) | Loop device and partition management |
 | `zip`, `unzip`, `wget` | Compression and downloads |
 | `shellcheck` | Shell script linting |
-| `ruby-full` + `serverspec` | Rootfs and image testing |
+| `ruby` + `serverspec` | Rootfs and image testing |
 
 ## Build and push
 

@@ -1,21 +1,23 @@
-FROM debian:bookworm-slim
+FROM alpine:3.21
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    binfmt-support \
-    qemu-user-static \
+RUN apk add --no-cache \
+    qemu-arm \
+    qemu-aarch64 \
     parted \
     dosfstools \
     e2fsprogs \
     util-linux \
-    kpartx \
+    multipath-tools \
     zip \
     unzip \
     wget \
     ca-certificates \
     file \
     shellcheck \
-    ruby-full \
-    build-essential \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && gem install serverspec --no-document
+    ruby \
+    && apk add --no-cache --virtual .build-deps \
+        ruby-dev \
+        build-base \
+        linux-headers \
+    && gem install serverspec --no-document \
+    && apk del .build-deps
