@@ -25,6 +25,18 @@ make build
 IMAGE_TAG=v1.0 make push
 ```
 
+## Other targets
+
+```bash
+make shell          # Open a shell inside the image
+make tag TAG=v1.0   # Create and push a git tag
+```
+
+## CI / Release
+
+CircleCI builds and pushes the image on every tag push.
+The pipeline uses the `Docker Hub` context for `DOCKER_USER` / `DOCKER_PASS`.
+
 ## Usage in downstream Dockerfiles
 
 ```dockerfile
