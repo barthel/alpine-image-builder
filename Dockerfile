@@ -1,6 +1,8 @@
-FROM alpine:3.21
+ARG ALPINE_VERSION=3.21
+FROM alpine:${ALPINE_VERSION}
 
 RUN apk add --no-cache \
+    bash \
     qemu-arm \
     qemu-aarch64 \
     parted \

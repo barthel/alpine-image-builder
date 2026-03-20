@@ -1,7 +1,6 @@
 version: 2.1
 
 workflows:
-  version: 2.1
   build_and_push:
     jobs:
       - build:
@@ -11,45 +10,38 @@ workflows:
           context:
             - "Docker Hub"
 
+commands:
+  setup-multi-arch-docker:
+    steps:
+      - run:
+          name: Prepare for multi arch build (setup qemu)
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y qemu-user-static binfmt-support
+      - run:
+          name: Check versions
+          command: |
+            qemu-arm-static --version
+            qemu-aarch64-static --version
+            update-binfmts --version
+      - run:
+          name: Create multi arch docker image builder
+          command: |
+            docker buildx create --name multi-arch-builder
+            docker buildx use multi-arch-builder
+            docker buildx inspect --bootstrap
+
 jobs:
   build:
     machine:
-      image: ubuntu-2404:current
+      image: ubuntu-2204:current
+    resource_class: large
     steps:
+      - setup-multi-arch-docker
       - checkout
-
-      - run:
-          name: Run Docker login
-          command: |
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-
       - run:
           name: Build and push image
+          no_output_timeout: 1h
           command: |
-            IMAGE_NAME="${DOCKER_USER}/alpine-image-builder"
-            if [ -n "${CIRCLE_TAG}" ]; then
-              MAJOR="${CIRCLE_TAG%%.*}"
-              MINOR="${CIRCLE_TAG%.*}"
-              docker build \
-                -t "${IMAGE_NAME}:${CIRCLE_TAG}" \
-                -t "${IMAGE_NAME}:${MINOR}" \
-                -t "${IMAGE_NAME}:${MAJOR}" \
-                -t "${IMAGE_NAME}:latest" \
-                -t "${IMAGE_NAME}:stable" \
-                .
-              docker push "${IMAGE_NAME}:${CIRCLE_TAG}"
-              docker push "${IMAGE_NAME}:${MINOR}"
-              docker push "${IMAGE_NAME}:${MAJOR}"
-              docker push "${IMAGE_NAME}:latest"
-              docker push "${IMAGE_NAME}:stable"
-            else
-              docker build -t "${IMAGE_NAME}:latest" .
-              docker push "${IMAGE_NAME}:latest"
-            fi
-
-      - run:
-          name: Tag and push git tag
-          command: |
-            if [ -n "${CIRCLE_TAG}" ]; then
-              echo "Released ${CIRCLE_TAG}"
-            fi
+            echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+            VERSION="${CIRCLE_TAG}" PUSH=true ./build.sh
