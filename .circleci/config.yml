@@ -1,0 +1,37 @@
+version: 2.1
+
+workflows:
+  version: 2.1
+  build_and_push:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+          context:
+            - "Docker Hub"
+
+jobs:
+  build:
+    machine:
+      image: ubuntu-2404:current
+    steps:
+      - checkout
+
+      - run:
+          name: Run Docker login
+          command: |
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+
+      - run:
+          name: Build image
+          command: |
+            make build
+
+      - run:
+          name: Push image
+          command: |
+            if [ "$CIRCLE_TAG" != "" ]; then
+              IMAGE_TAG=${CIRCLE_TAG} make push
+              IMAGE_TAG=latest make push
+            fi
