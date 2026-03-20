@@ -24,14 +24,32 @@ jobs:
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
 
       - run:
-          name: Build image
+          name: Build and push image
           command: |
-            make build
+            IMAGE_NAME="${DOCKER_USER}/alpine-image-builder"
+            if [ -n "${CIRCLE_TAG}" ]; then
+              MAJOR="${CIRCLE_TAG%%.*}"
+              MINOR="${CIRCLE_TAG%.*}"
+              docker build \
+                -t "${IMAGE_NAME}:${CIRCLE_TAG}" \
+                -t "${IMAGE_NAME}:${MINOR}" \
+                -t "${IMAGE_NAME}:${MAJOR}" \
+                -t "${IMAGE_NAME}:latest" \
+                -t "${IMAGE_NAME}:stable" \
+                .
+              docker push "${IMAGE_NAME}:${CIRCLE_TAG}"
+              docker push "${IMAGE_NAME}:${MINOR}"
+              docker push "${IMAGE_NAME}:${MAJOR}"
+              docker push "${IMAGE_NAME}:latest"
+              docker push "${IMAGE_NAME}:stable"
+            else
+              docker build -t "${IMAGE_NAME}:latest" .
+              docker push "${IMAGE_NAME}:latest"
+            fi
 
       - run:
-          name: Push image
+          name: Tag and push git tag
           command: |
-            if [ "$CIRCLE_TAG" != "" ]; then
-              IMAGE_TAG=${CIRCLE_TAG} make push
-              IMAGE_TAG=latest make push
+            if [ -n "${CIRCLE_TAG}" ]; then
+              echo "Released ${CIRCLE_TAG}"
             fi
